@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>联系我们 - 小鹿光年</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <!-- 导航栏 -->
+  <nav class="navbar">
+    <div class="container nav-container">
+      <a href="index.html" class="logo"><img src="images/【小鹿光年】组合LOGO 横版-禁删.png" alt="小鹿光年"></a>
+      <ul class="nav-links">
+        <li><a href="index.html">首页</a></li>
+        <li><a href="our-story.html">我们的故事</a></li>
+        <li><a href="blog.html">回忆录广场</a></li>
+        <li><a href="contact.html" class="active">联系我们</a></li>
+      </ul>
+    </div>
+  </nav>
+
+  <!-- 主要内容 -->
+  <div class="main-content">
+    <div class="container">
+      <h1 class="section-title">联系我们</h1>
+      <p class="text-center" style="margin-bottom: 0px;">我们一起创造美好的回忆</p>
+      
+      <div class="contact-wrapper">
+        <section class="contact-container">
+          <form id="contact-form" action="submit_form.php" method="POST">
+            <div class="form-group">
+              <label for="name">姓名</label>
+              <input type="text" id="name" name="name" required>
+            </div>
+            <div class="form-group">
+              <label for="email">邮箱</label>
+              <input type="email" id="email" name="email" required>
+            </div>
+            <div class="form-group">
+              <label for="message">备注</label>
+              <textarea id="message" name="message" required></textarea>
+            </div>
+            <button type="submit" class="btn">提交</button>
+          </form>
+
+          <!-- 提交成功状态 -->
+          <div id="success-message" class="form-status" style="display: none;">
+            <img src="images/success.png" alt="成功" class="status-icon">
+            <h3>提交成功！</h3>
+            <p>我们会尽快与您联系</p>
+            <button class="btn btn-outline" onclick="window.location.href='index.html'">返回首页</button>
+          </div>
+
+          <!-- 提交失败状态 -->
+          <div id="error-message" class="form-status" style="display: none;">
+            <img src="images/fail.png" alt="失败" class="status-icon">
+            <h3>提交失败</h3>
+            <p>请稍后重试或直接联系我们</p>
+            <button class="btn btn-outline" onclick="location.reload()">重新提交</button>
+          </div>
+        </section>
+      </div>
+    </div>
+  </div>
+<!-- 页脚 -->
+<footer class="footer">
+  <div class="container footer-content">
+    <div class="footer-section">
+      <h3>小鹿光年</h3>
+      <p>用AI守护每一段珍贵回忆</p>
+      <div class="social-icons">
+        <a href="https://mp.weixin.qq.com/s/1jsAz0-KFYFzF1dLlYrDqA"><img src="images/wechat-icon.png" alt="微信"></a>
+        <a href="https://www.xiaohongshu.com/user/profile/67aafc2d000000000e01e4de?xsec_token=ABpI-usoZ0NxdQ36_Uy65kTcCaFmCGBRheII5CaB5_NqY%3D&xsec_source=pc_search"><img src="images/rednote-icon.png" alt="小红书"></a>
+        <a href="images/douyin-icon.png"><img src="images/douyin-icon.png" alt="抖音"></a>
+      </div>
+    </div>
+    <div class="footer-section">
+      <h3>快速链接</h3>
+      <a href="index.html">首页</a>
+      <a href="our-story.html">我们的故事</a>
+      <a href="blog.html">回忆录广场</a>
+      <a href="contact.html">联系我们</a>
+    </div>
+    <div class="footer-section">
+      <h3>联系我们</h3>
+      <p>邮箱：17721056642@163.com</p>
+      <p>电话：+86 15301635715</p>
+      <p>微信：deerai2025</p>
+    </div>
+  </div>
+  <div class="copyright container">
+    <p>&copy; 2025 小鹿光年. 保留所有权利.</p>
+  </div>
+</footer>
+
+
+  <script src="script.js"></script>
+</body>
+</html>
+</body>
+</html>
