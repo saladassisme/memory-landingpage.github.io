@@ -67,4 +67,53 @@ document.addEventListener('DOMContentLoaded', function() {
             });
         });
     }
+
+    // 处理轮播控件
+    const testimonialsGrid = document.getElementById('testimonials-grid');
+    const prevButton = document.getElementById('prev');
+    const nextButton = document.getElementById('next');
+    const testimonialItems = document.querySelectorAll('.testimonial-item');
+    let currentIndex = 0;
+
+    // 更新轮播显示
+    function updateCarousel() {
+        testimonialsGrid.style.transform = `translateX(-${currentIndex * 100}%)`;
+        
+        // 更新所有testimonial-item的可见性
+        testimonialItems.forEach((item, index) => {
+            if (index === currentIndex) {
+                item.style.opacity = '1';
+            } else {
+                item.style.opacity = '0';
+            }
+        });
+    }
+
+    // 添加上一个按钮点击事件
+    if (prevButton) {
+        prevButton.addEventListener('click', () => {
+            currentIndex = (currentIndex - 1 + testimonialItems.length) % testimonialItems.length;
+            updateCarousel();
+        });
+    }
+
+    // 添加下一个按钮点击事件
+    if (nextButton) {
+        nextButton.addEventListener('click', () => {
+            currentIndex = (currentIndex + 1) % testimonialItems.length;
+            updateCarousel();
+        });
+    }
+
+    // 初始化轮播
+    if (testimonialsGrid && testimonialItems.length > 0) {
+        // 设置初始状态
+        updateCarousel();
+        
+        // 自动轮播
+        setInterval(() => {
+            currentIndex = (currentIndex + 1) % testimonialItems.length;
+            updateCarousel();
+        }, 5000);
+    }
 });
