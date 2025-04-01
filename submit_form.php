@@ -1,84 +1,106 @@
 <?php
-header('Content-Type: application/json');
-
-// 启用错误报告
+// 显示所有错误
 error_reporting(E_ALL);
 ini_set('display_errors', 1);
 
-// 简单的日志函数
-function logError($message, $context = array()) {
-    $logFile = __DIR__ . '/error.log';
-if (!file_exists($logFile)) {
-    touch($logFile);
-    chmod($logFile, 0666);
-}
-    $timestamp = date('Y-m-d H:i:s');
-    $contextStr = !empty($context) ? ' Context: ' . json_encode($context) : '';
-    error_log("[$timestamp] $message$contextStr\n", 3, $logFile);
+require 'vendor/autoload.php';
+require 'config.php';
+
+use PHPMailer\PHPMailer\PHPMailer;
+use PHPMailer\PHPMailer\Exception;
+
+// 允许跨域请求
+header('Access-Control-Allow-Origin: *');
+header('Access-Control-Allow-Methods: POST');
+header('Access-Control-Allow-Headers: Content-Type');
+header('Content-Type: application/json; charset=utf-8');
+
+// 记录错误日志的函数
+function logError($message, $context = []) {
+    $logMessage = date('[Y-m-d H:i:s] ') . $message . "\n";
+    if (!empty($context)) {
+        $logMessage .= json_encode($context, JSON_UNESCAPED_UNICODE) . "\n";
+    }
+    file_put_contents('error.log', $logMessage, FILE_APPEND);
 }
 
-if ($_SERVER["REQUEST_METHOD"] == "POST") {
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     try {
-        // 验证必填字段
-        if (empty($_POST['name']) || empty($_POST['email']) || empty($_POST['message'])) {
-            throw new Exception('所有字段都是必填的');
+        // 获取表单数据
+        $name = $_POST['name'] ?? '';
+        $phone = $_POST['phone'] ?? '';
+        $email = $_POST['email'] ?? '';
+        $message = $_POST['message'] ?? '';
+
+        // 验证数据
+        if (empty($name) || empty($phone) || empty($email) || empty($message)) {
+            throw new Exception('请填写所有必填字段');
         }
 
-        // 验证邮箱格式
-        if (!filter_var($_POST['email'], FILTER_VALIDATE_EMAIL)) {
-            throw new Exception('邮箱格式不正确');
+        // 验证手机号
+        if (!preg_match('/^1[3-9]\d{9}$/', $phone)) {
+            throw new Exception('请输入有效的手机号码');
         }
 
-        $name = htmlspecialchars($_POST['name']);
-        $email = htmlspecialchars($_POST['email']);
-        $message = htmlspecialchars($_POST['message']);
+        // 验证邮箱
+        if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
+            throw new Exception('请输入有效的邮箱地址');
+        }
 
-        // 发送确认邮件
-        $to = $email;
-        $subject = "感谢您联系小鹿光年";
-        $email_message = "亲爱的 $name：\n\n感谢您联系小鹿光年！\n\n我们已收到您的留言，我们的团队会尽快与您联系。\n\n您的留言内容：\n$message\n\n如有任何疑问，请随时与我们联系。\n\n祝您愉快！\n小鹿光年团队";
-        
-        $headers = "From: 17721056642@163.com\r\n";
-        $headers .= "Reply-To: 17721056642@163.com\r\n";
-        $headers .= "Content-Type: text/plain; charset=UTF-8\r\n";
-        
-        // 记录邮件发送尝试
-        logError('尝试发送邮件', array(
-            'to' => $email,
-            'subject' => $subject
-        ));
+        $mail = new PHPMailer(true);
 
-        $success = @mail($to, $subject, $email_message, $headers);
-        
-        if ($success) {
-            logError('邮件发送成功', array('to' => $email));
-            http_response_code(200);
-            echo json_encode(array(
-                'status' => 'success',
-                'message' => "感谢您的提交，$name！我们会尽快与您联系。"
-            ));
-        } else {
-            $error = error_get_last();
-            throw new Exception('邮件发送失败: ' . ($error ? $error['message'] : '未知错误'));
+        try {
+            // 服务器设置
+            $mail->isSMTP();
+            $mail->Host = SMTP_HOST;
+            $mail->SMTPAuth = true;
+            $mail->Username = SMTP_USERNAME;
+            $mail->Password = SMTP_PASSWORD;
+            $mail->SMTPSecure = SMTP_SECURE;
+            $mail->Port = SMTP_PORT;
+            $mail->CharSet = 'UTF-8';
+
+            // 收发件人设置
+            $mail->setFrom(MAIL_FROM, MAIL_FROM_NAME);
+            $mail->addAddress($email, $name);
+            $mail->addBCC(MAIL_FROM); // 给管理员发送一份副本
+
+            // 邮件内容
+            $mail->isHTML(true);
+            $mail->Subject = "感谢您联系小鹿光年";
+            $mail->Body = "
+                <h2>亲爱的 {$name}：</h2>
+                <p>感谢您联系小鹿光年！</p>
+                <p>我们已收到您的留言，我们的团队会尽快与您联系。</p>
+                <p>您的联系信息：</p>
+                <ul>
+                    <li>姓名：{$name}</li>
+                    <li>手机：{$phone}</li>
+                    <li>邮箱：{$email}</li>
+                </ul>
+                <p>您的留言内容：</p>
+                <blockquote>{$message}</blockquote>
+                <p>如有任何疑问，请随时与我们联系。</p>
+                <p>祝您愉快！<br>小鹿光年团队</p>
+            ";
+
+            $mail->send();
+            echo json_encode(['status' => 'success', 'message' => '邮件发送成功']);
+            
+        } catch (Exception $e) {
+            logError("邮件发送失败", [
+                'error' => $mail->ErrorInfo,
+                'name' => $name,
+                'email' => $email
+            ]);
+            echo json_encode(['status' => 'error', 'message' => '邮件发送失败，请稍后重试']);
         }
 
     } catch (Exception $e) {
-        logError($e->getMessage(), array(
-            'error_type' => get_class($e),
-            'file' => $e->getFile(),
-            'line' => $e->getLine()
-        ));
-        http_response_code(400);
-        echo json_encode(array(
-            'status' => 'error',
-            'message' => $e->getMessage()
-        ));
+        logError($e->getMessage());
+        echo json_encode(['status' => 'error', 'message' => $e->getMessage()]);
     }
 } else {
-    http_response_code(405);
-    echo json_encode(array(
-        'status' => 'error',
-        'message' => '不支持的请求方法'
-    ));
+    echo json_encode(['status' => 'error', 'message' => '无效的请求方法']);
 }
 ?>

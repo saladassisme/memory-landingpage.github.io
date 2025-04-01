@@ -41,13 +41,25 @@ document.addEventListener('DOMContentLoaded', function() {
             // 获取表单数据
             const formData = new FormData(this);
 
-            // 发送AJAX请求
-            fetch('submit_form.php', {
+            // 显示加载状态
+            const submitButton = this.querySelector('button[type="submit"]');
+            submitButton.disabled = true;
+            submitButton.textContent = '提交中...';
+
+            // 修改这里的URL为本地服务器地址
+            fetch('http://localhost:8000/submit_form.php', {
                 method: 'POST',
                 body: formData
             })
-            .then(response => response.json())
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('网络响应出错');
+                }
+                return response.json();
+            })
             .then(data => {
+                console.log('服务器响应:', data); // 添加调试信息
+                
                 // 隐藏表单
                 contactForm.style.display = 'none';
                 
@@ -57,13 +69,22 @@ document.addEventListener('DOMContentLoaded', function() {
                 } else {
                     // 显示错误消息
                     document.getElementById('error-message').style.display = 'block';
+                    document.getElementById('error-message').querySelector('p').textContent = 
+                        data.message || '提交失败，请稍后重试';
                 }
             })
             .catch(error => {
+                console.error('提交错误:', error); // 添加详细错误信息
                 // 隐藏表单并显示错误消息
                 contactForm.style.display = 'none';
                 document.getElementById('error-message').style.display = 'block';
-                console.error('Error:', error);
+                document.getElementById('error-message').querySelector('p').textContent = 
+                    '提交失败：' + error.message;
+            })
+            .finally(() => {
+                // 恢复按钮状态
+                submitButton.disabled = false;
+                submitButton.textContent = '提交';
             });
         });
     }
